@@ -1,0 +1,103 @@
+
+
+# Converting and importing files from .biom to .qza
+qiime tools import  --input-path /mnt/c/Users/nikhi/Downloads/BBIO_DATA/BIOM/53182/otu_table.biom  --output-path /mnt/c/Users/nikhi/Downloads/BBIO_DATA/BIOM/53182/otu_table.qza  --type 'FeatureTable[Frequency]'  --input-format BIOMV210Format
+
+
+# Taking one .qza out of BIOM folder into our main folder for working
+cp ./BBIO_DATA/BIOM/35452/otu_table.qza ./
+
+
+
+
+# Taking one mapping file out of mapping_file folder into main folder
+cp ./BBIO_DATA/mapping_files/35452_mapping_file.txt ./
+
+
+
+
+# Create a table summary from a regular .qza file - also included metadata
+qiime feature-table summarize-plus --i-table otu_table.qza  --output-dir otu_table_summary --m-metadata-file 35452_mapping_file.txt
+
+
+
+
+# Create tables of data of frequency of microbes and stats on sampling depth and statistic summary - must be in otu_table_summary
+qiime tools view summary.qzv
+
+
+
+
+#Import raw sequences .fasta into .qza
+qiime tools import \
+> --input-path seqs.fasta \
+> --output-path seqs.qza \
+> --type 'FeatureData[Sequence]'
+
+
+
+
+#Rework mapping file from .txt into .tsv
+ mv 35452_mapping_file.txt 35452_mapping_file.tsv
+
+
+
+#Visualize .tsv metadata file into.qza metadata file
+qiime metadata tabulate \
+> --m-input-file 35452_mapping_file.tsv \
+> --o-visualization 35452_metadata.qzv
+
+
+#Rarefy (Shrink table) to a sample of your given choice
+qiime feature-table rarefy \
+  --i-table otu_table.qza \
+  --p-sampling-depth 7300 \
+  --o-rarefied-table otu_rarefied_table.qza
+
+
+
+#Compute and create a file for Shannon Diversity for your rarefied table
+qiime diversity alpha \
+> --i-table otu_rarefied_table.qza \
+> --p-metric shannon \
+> --o-alpha diversity shannon_alpha_diversity.qza
+
+
+
+
+#Visualize the table by including your .tsv metadata file and turn it into a .qzv file
+qiime diversity alpha-group-significance \
+> --i-alpha-diversity shannon_alpha_diversity.qza \
+> --m-metadata-file 35452_mapping_file.tsv
+> --o-visualization shannon-significance.qzv
+
+
+
+#Export rarefied table into a folder
+qiime tools export \
+> --input-path otu_rarefied_table.qza \ 
+> --output-path exported_rarefied_table
+
+
+
+
+#Folder creates a .biom file of your rarefied table, turn it into a .tsv file which you can work with in python
+biom convert \
+> -i exported_rarefied_table/feature-table.biom
+> -o feature_table.tsv \
+> --to-tsv
+
+
+
+#Helping ANCOM by using pseudocounts (small value to observed data)
+qiime composition add-pseudocount \
+> --i-table otu_new_rarefied_table.qza \
+> --o-composition-table comp-table_new.qza
+
+#ANCOM 2 code to create a visualization of abundances
+qiime composition ancom \
+> --i-table comp-table_new.qza \
+> --m-metadata-file 35452_mapping_file.tsv \
+> --m-metadata-column run_prefix \
+> --o-visualization ancom_table_diet.qzv
+
