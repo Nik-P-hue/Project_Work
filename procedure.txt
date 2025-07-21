@@ -101,3 +101,38 @@ qiime composition ancom \
 > --m-metadata-column run_prefix \
 > --o-visualization ancom_table_diet.qzv
 
+#Create the taxonomy file
+qiime feature-classifier classify-sklearn \
+> --i-classifier silva-138-99-nb-classifier.qza \
+> --i-reads seqs.qza \
+> --p-reads-per-batch 700 \
+> --o-classification taxonomy.qza
+
+
+
+# Take the rarefied table and prime it for a Bray Curtis beta diversity test 
+qiime diversity beta \
+> --i-table otu_new_rarefied_table.qza \
+> --p-metric braycurtis \
+> --o-distance-matrix braycurtis_dm.qza
+
+#Do a Bray Curtis test on it and statistical test on top of it
+qiime diversity beta-group-significance \
+> --i-distance-matrix braycurtis_dm.qza \
+> --m-metadata-file revised_data.tsv \
+> --m-metadata-column Diet \
+> --o-visualization braycurtis_significance.qzv \
+> --p-method permanova
+
+#Prime the Bray Curtis .qza from before for a PCoA plot
+qiime diversity pcoa \
+> --i-distance-matrix  braycurtis_dm.qza \
+> --o-pcoa braycurtis_pcoa.qza
+
+#Create the emperor plot (PCoA)
+ qiime emperor plot \
+> --i-pcoa braycurtis_pcoa.qza \
+> --m-metadata-file revised_data.tsv \
+> --o-visualization braycurts_emperor.qzv
+
+
