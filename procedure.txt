@@ -108,55 +108,6 @@ qiime feature-classifier classify-sklearn \
 > --p-reads-per-batch 700 \
 > --o-classification taxonomy.qza
 
-
-
-# Take the rarefied table and prime it for a Bray Curtis beta diversity test 
-qiime diversity beta \
-> --i-table otu_new_rarefied_table.qza \
-> --p-metric braycurtis \
-> --o-distance-matrix braycurtis_dm.qza
-
-#Do a Bray Curtis test on it and statistical test on top of it
-qiime diversity beta-group-significance \
-> --i-distance-matrix braycurtis_dm.qza \
-> --m-metadata-file revised_data.tsv \
-> --m-metadata-column Diet \
-> --o-visualization braycurtis_significance.qzv \
-> --p-method permanova
-
-#Prime the Bray Curtis .qza from before for a PCoA plot
-qiime diversity pcoa \
-> --i-distance-matrix  braycurtis_dm.qza \
-> --o-pcoa braycurtis_pcoa.qza
-
-#Create the emperor plot (PCoA)
- qiime emperor plot \
-> --i-pcoa braycurtis_pcoa.qza \
-> --m-metadata-file revised_data.tsv \
-> --o-visualization braycurts_emperor.qzv
-
-#Create a bar plot that shows the different genera among different groups of data
-qiime taxa barplot \
-> --i-table otu_rarefied_table.qza \
->  --i-taxonomy taxonomy.qza \
->  --m-metadata-file revised_data.tsv \
-> --o-visualization taxa-barplot.qzv
-
-
-#Filter table to only certain genera
-qiime taxa filter-table \
-> --i-table otu_rarefied_table.qza \
-> --i-taxonomy taxonomy.qza \
-> --p-include "g__Fibrobacter,g__Treponema,g__Bacteroides" \
-> --o-filtered-table fiber_taxa_only_table.qza
-
-
-#Visualize table above
-qiime feature-table summarize \
-> --i-table fiber_taxa_only_table.qza \
->  --m-sample-metadata-file revised_data.tsv \
-> --o-visualization fiber_taxa_summary.qzv
-
 #Collapse table to only genera
 qiime taxa collapse \
 >  --i-table otu_rarefied_table.qza \
