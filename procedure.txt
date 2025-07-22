@@ -135,4 +135,48 @@ qiime diversity pcoa \
 > --m-metadata-file revised_data.tsv \
 > --o-visualization braycurts_emperor.qzv
 
+#Create a bar plot that shows the different genera among different groups of data
+qiime taxa barplot \
+> --i-table otu_rarefied_table.qza \
+>  --i-taxonomy taxonomy.qza \
+>  --m-metadata-file revised_data.tsv \
+> --o-visualization taxa-barplot.qzv
+
+
+#Filter table to only certain genera
+qiime taxa filter-table \
+> --i-table otu_rarefied_table.qza \
+> --i-taxonomy taxonomy.qza \
+> --p-include "g__Fibrobacter,g__Treponema,g__Bacteroides" \
+> --o-filtered-table fiber_taxa_only_table.qza
+
+
+#Visualize table above
+qiime feature-table summarize \
+> --i-table fiber_taxa_only_table.qza \
+>  --m-sample-metadata-file revised_data.tsv \
+> --o-visualization fiber_taxa_summary.qzv
+
+#Collapse table to only genera
+qiime taxa collapse \
+>  --i-table otu_rarefied_table.qza \
+> --i-taxonomy taxonomy.qza \
+> --p-level 6 \
+> --o-collapsed-table genus_collapsed_table.qza
+
+#Create file that combines collapsed table with metadata file
+qiime feature-table group \
+> --i-table genus_collapsed_table.qza \
+>  --m-metadata-file revised_data.tsv \
+> --m-metadata-column Diet \
+> --p-mode mean-ceiling \
+>  --p-axis sample \
+> --o-grouped-table grouped_by_diet.qza
+
+
+
+#Create a heatmap out of it
+qiime feature-table heatmap \
+> --i-table grouped_by_diet.qza \
+>  --o-visualization grouped_diet_heatmap.qzv
 
